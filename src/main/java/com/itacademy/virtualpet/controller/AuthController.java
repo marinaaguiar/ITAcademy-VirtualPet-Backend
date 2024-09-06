@@ -16,6 +16,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public Mono<ResponseEntity<User>> register(@RequestBody User user) {
+        System.out.println("Registering user: " + user);
         return authService.register(user.getUsername(), user.getPassword())
                 .map(savedUser -> ResponseEntity.ok((User) savedUser));
     }

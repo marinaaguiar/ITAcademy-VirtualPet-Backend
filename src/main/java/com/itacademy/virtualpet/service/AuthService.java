@@ -23,9 +23,12 @@ public class AuthService {
 
     public Mono<Object> register(String username, String password) {
         return userRepository.findByUsername(username)
-                .flatMap(existingUser -> Mono.error(new UsernameAlreadyTakenException("Username '" + username + "' is already taken.")))
+                .flatMap(existingUser -> {
+                    return Mono.error(new UsernameAlreadyTakenException("Username '" + username + "' is already taken."));
+                })
                 .switchIfEmpty(
                         userRepository.save(new User(username, passwordEncoder.encode(password), null))
+                                .cast(User.class) // Ensure the returned Mono is cast to Mono<User>
                 );
     }
 
