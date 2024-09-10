@@ -1,5 +1,6 @@
 package com.itacademy.virtualpet.service;
 
+import com.itacademy.virtualpet.exception.InvalidCredentialsException;
 import com.itacademy.virtualpet.exception.UserNotFoundException;
 import com.itacademy.virtualpet.exception.UsernameAlreadyTakenException;
 import com.itacademy.virtualpet.model.User;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
 
 @Service
 public class AuthService {
@@ -23,12 +26,9 @@ public class AuthService {
 
     public Mono<Object> register(String username, String password) {
         return userRepository.findByUsername(username)
-                .flatMap(existingUser -> {
-                    return Mono.error(new UsernameAlreadyTakenException("Username '" + username + "' is already taken."));
-                })
+                .flatMap(existingUser -> Mono.error(new UsernameAlreadyTakenException("Username '" + username + "' is already taken.")))
                 .switchIfEmpty(
-                        userRepository.save(new User(username, passwordEncoder.encode(password), null))
-                                .cast(User.class) // Ensure the returned Mono is cast to Mono<User>
+                        userRepository.save(new User(username, passwordEncoder.encode(password), new ArrayList<>()))
                 );
     }
 
@@ -39,7 +39,7 @@ public class AuthService {
                     if (passwordEncoder.matches(password, user.getPassword())) {
                         return Mono.just(user);
                     } else {
-                        return Mono.error(new UserNotFoundException("Invalid username or password."));
+                        return Mono.error(new InvalidCredentialsException("Invalid username or password."));
                     }
                 });
     }
