@@ -23,36 +23,34 @@ public class JwtAuthenticationFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-
-        final String jwt;
-        final String username;
+        System.out.println("Checking Authorization Header: " + authorizationHeader);
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7);
+            String jwt = authorizationHeader.substring(7);
+            System.out.println("Extracted JWT: " + jwt);
+
             try {
-                username = jwtUtil.extractUsername(jwt);
+                String username = jwtUtil.extractUsername(jwt);
+                System.out.println("Extracted Username: " + username);
+
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    return userDetailsService.findByUsername(username)
+                            .flatMap(userDetails -> {
+                                if (jwtUtil.validateToken(jwt, userDetails)) {
+                                    System.out.println("JWT validated successfully");
+                                    UsernamePasswordAuthenticationToken authToken =
+                                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                                }
+                                return chain.filter(exchange);
+                            });
+                }
             } catch (Exception e) {
-                return chain.filter(exchange);
+                System.out.println("Error parsing JWT: " + e.getMessage());
             }
         } else {
-            return chain.filter(exchange);
+            System.out.println("No Authorization header or invalid token");
         }
-
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            final String extractedUsername = username;
-            final String token = jwt;
-
-            return userDetailsService.findByUsername(extractedUsername)
-                    .flatMap(userDetails -> {
-                        if (jwtUtil.validateToken(token, userDetails)) {
-                            UsernamePasswordAuthenticationToken authToken =
-                                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                            SecurityContextHolder.getContext().setAuthentication(authToken);
-                        }
-                        return chain.filter(exchange);
-                    });
-        }
-
         return chain.filter(exchange);
     }
 }

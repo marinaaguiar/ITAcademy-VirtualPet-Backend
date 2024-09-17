@@ -37,7 +37,7 @@ public class AuthController {
     public Mono<ResponseEntity<Map<String, Object>>> login(@RequestBody User user) {
         return authService.login(user.getUsername(), user.getPassword())
                 .map(loggedInUser -> {
-                    String token = jwtUtil.generateToken(loggedInUser);
+                    String token = jwtUtil.generateToken((User) loggedInUser);
                     Map<String, Object> response = new HashMap<>();
                     response.put("user", loggedInUser);
                     response.put("token", token);

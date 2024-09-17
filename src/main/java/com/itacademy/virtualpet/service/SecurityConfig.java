@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
@@ -32,9 +33,10 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) {
         return http
-                .csrf().disable()
+                .csrf().disable() 
                 .authorizeExchange()
                 .pathMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .pathMatchers("/api/users/**").authenticated()
                 .anyExchange().authenticated()
                 .and()
                 .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
@@ -47,9 +49,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public ReactiveUserDetailsService userDetailsService() {
+    public ReactiveUserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> userRepository.findByUsername(username)
-                .map(user -> org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+                .map(user -> User.withUsername(user.getUsername())
                         .password(user.getPassword())
                         .roles("USER")
                         .build());

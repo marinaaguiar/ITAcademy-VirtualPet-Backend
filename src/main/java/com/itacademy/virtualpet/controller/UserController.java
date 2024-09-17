@@ -21,6 +21,9 @@ public class UserController {
 
     @PostMapping("/{userId}/addPet")
     public Mono<ResponseEntity<User>> addPetToUser(@PathVariable String userId, @RequestBody Pet pet, Authentication authentication) {
+        System.out.println("Authentication Name: " + authentication.getName());
+        System.out.println("Authorities: " + authentication.getAuthorities());
+
         String authenticatedUsername = authentication.getName();
 
         return userService.addPetToUser(userId, authenticatedUsername, pet)
