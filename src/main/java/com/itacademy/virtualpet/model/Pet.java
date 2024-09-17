@@ -18,9 +18,6 @@ public class Pet {
     private int energyLevel;
     private List<PetNeeds> needs;
 
-    public Pet() {
-    }
-
     public Pet(String name, PetType type, String imageName, String uniqueCharacteristic, PetMood mood, int energyLevel, List<PetNeeds> needs) {
         this.name = name;
         this.type = type;

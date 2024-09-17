@@ -14,8 +14,6 @@ public class User {
     private String password;
     private List<Pet> pets;
 
-    public User() {}
-
     public User(String username, String password, List<Pet> pets) {
         this.username = username;
         this.password = password;
