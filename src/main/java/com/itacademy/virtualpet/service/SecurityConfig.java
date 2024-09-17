@@ -33,7 +33,7 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) {
         return http
-                .csrf().disable() 
+                .csrf().disable()
                 .authorizeExchange()
                 .pathMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .pathMatchers("/api/users/**").authenticated()
