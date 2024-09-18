@@ -2,6 +2,7 @@ package com.itacademy.virtualpet.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
 
@@ -12,7 +13,9 @@ public class User {
     private String id;
     private String username;
     private String password;
+    @Field("pets")
     private List<Pet> pets;
+
 
     public User(String username, String password, List<Pet> pets) {
         this.username = username;

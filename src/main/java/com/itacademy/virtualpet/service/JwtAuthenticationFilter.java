@@ -3,6 +3,7 @@ package com.itacademy.virtualpet.service;
 import jakarta.annotation.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.stereotype.Component;
@@ -33,15 +34,26 @@ public class JwtAuthenticationFilter implements WebFilter {
                 String username = jwtUtil.extractUsername(jwt);
                 System.out.println("Extracted Username: " + username);
 
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (username != null) {
                     return userDetailsService.findByUsername(username)
                             .flatMap(userDetails -> {
                                 if (jwtUtil.validateToken(jwt, userDetails)) {
                                     System.out.println("JWT validated successfully");
+
                                     UsernamePasswordAuthenticationToken authToken =
-                                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                                            new UsernamePasswordAuthenticationToken(
+                                                    userDetails, null, userDetails.getAuthorities()
+                                            );
+
+                                    return chain.filter(exchange)
+                                            .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authToken));
+                                } else {
+                                    System.out.println("JWT validation failed.");
+                                    return chain.filter(exchange);
                                 }
+                            })
+                            .onErrorResume(e -> {
+                                System.out.println("Error during JWT validation: " + e.getMessage());
                                 return chain.filter(exchange);
                             });
                 }

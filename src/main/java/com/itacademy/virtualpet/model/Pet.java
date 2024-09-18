@@ -1,21 +1,31 @@
 package com.itacademy.virtualpet.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.UUID;
 
 @Document(collection = "pets")
 public class Pet {
 
     @Id
-    private String id;
+    private String id = UUID.randomUUID().toString();
     private String name;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private PetType type;
+
     private String imageName;
     private String uniqueCharacteristic;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private PetMood mood;
+
     private int energyLevel;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private List<PetNeeds> needs;
 
     public Pet(String name, PetType type, String imageName, String uniqueCharacteristic, PetMood mood, int energyLevel, List<PetNeeds> needs) {

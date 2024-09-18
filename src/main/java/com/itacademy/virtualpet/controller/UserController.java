@@ -21,23 +21,40 @@ public class UserController {
 
     @PostMapping("/{userId}/addPet")
     public Mono<ResponseEntity<User>> addPetToUser(@PathVariable String userId, @RequestBody Pet pet, Authentication authentication) {
-        System.out.println("Authentication Name: " + authentication.getName());
-        System.out.println("Authorities: " + authentication.getAuthorities());
-
+        if (authentication == null) {
+            System.out.println("Authentication is null, returning UNAUTHORIZED.");
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
         String authenticatedUsername = authentication.getName();
-
-        return userService.addPetToUser(userId, authenticatedUsername, pet)
-                .map(updatedUser -> ResponseEntity.ok(updatedUser))
-                .defaultIfEmpty(ResponseEntity.notFound().build())
-                .onErrorReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+        return userService.findUserById(userId)
+                .flatMap(user -> {
+                    return userService.addPetToUser(userId, authenticatedUsername, pet)
+                            .map(updatedUser -> {
+                                System.out.println("User updated successfully: " + updatedUser.getUsername());
+                                return ResponseEntity.ok(updatedUser);
+                            });
+                });
     }
 
     @GetMapping("/{userId}/pets")
     public Mono<ResponseEntity<List<Pet>>> getUserPets(@PathVariable String userId, Authentication authentication) {
+        if (authentication == null) {
+            System.out.println("Authentication is null, returning UNAUTHORIZED.");
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
         String authenticatedUsername = authentication.getName();
-        return userService.getUserPets(userId, authenticatedUsername)
-                .map(pets -> ResponseEntity.ok(pets))
-                .defaultIfEmpty(ResponseEntity.notFound().build())
-                .onErrorReturn(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+        return userService.findUserById(userId)
+                .flatMap(user -> {
+                    return userService.getUserPets(userId, authenticatedUsername)
+                            .map(pets -> {
+                                System.out.println("Pets returned: " + pets);
+                                return ResponseEntity.ok(pets);
+                            })
+                            .defaultIfEmpty(ResponseEntity.notFound().build())
+                            .onErrorResume(e -> {
+                                System.out.println("Error: " + e.getMessage());
+                                return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+                            });
+                });
     }
 }
