@@ -24,7 +24,6 @@ public class JwtAuthenticationFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String authorizationHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        System.out.println("Checking Authorization Header: " + authorizationHeader);
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String jwt = authorizationHeader.substring(7);
@@ -60,8 +59,6 @@ public class JwtAuthenticationFilter implements WebFilter {
             } catch (Exception e) {
                 System.out.println("Error parsing JWT: " + e.getMessage());
             }
-        } else {
-            System.out.println("No Authorization header or invalid token");
         }
         return chain.filter(exchange);
     }

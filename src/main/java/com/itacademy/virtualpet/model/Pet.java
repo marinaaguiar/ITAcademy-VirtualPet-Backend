@@ -13,28 +13,22 @@ public class Pet {
     @Id
     private String id = UUID.randomUUID().toString();
     private String name;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private PetType type;
-
-    private String imageName;
     private String uniqueCharacteristic;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private PetMood mood;
-
     private int energyLevel;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private PetType type;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private PetMood mood;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private List<PetNeeds> needs;
 
-    public Pet(String name, PetType type, String imageName, String uniqueCharacteristic, PetMood mood, int energyLevel, List<PetNeeds> needs) {
+    public Pet(String name, PetType type, String uniqueCharacteristic, PetMood mood, int energyLevel, List<PetNeeds> needs) {
         this.name = name;
-        this.type = type;
-        this.imageName = imageName;
         this.uniqueCharacteristic = uniqueCharacteristic;
-        this.mood = mood;
         this.energyLevel = energyLevel;
+        this.type = type;
+        this.mood = mood;
         this.needs = needs;
     }
 
@@ -60,5 +54,37 @@ public class Pet {
 
     public void setType(PetType type) {
         this.type = type;
+    }
+
+    public String getUniqueCharacteristic() {
+        return uniqueCharacteristic;
+    }
+
+    public void setUniqueCharacteristic(String uniqueCharacteristic) {
+        this.uniqueCharacteristic = uniqueCharacteristic;
+    }
+
+    public int getEnergyLevel() {
+        return energyLevel;
+    }
+
+    public void setEnergyLevel(int energyLevel) {
+        this.energyLevel = energyLevel;
+    }
+
+    public PetMood getMood() {
+        return mood;
+    }
+
+    public void setMood(PetMood mood) {
+        this.mood = mood;
+    }
+
+    public List<PetNeeds> getNeeds() {
+        return needs;
+    }
+
+    public void setNeeds(List<PetNeeds> needs) {
+        this.needs = needs;
     }
 }
