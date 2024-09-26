@@ -54,4 +54,14 @@ public class User {
     public void setPets(List<Pet> pets) {
         this.pets = pets;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id='" + id + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", pets=" + pets +
+                '}';
+    }
 }

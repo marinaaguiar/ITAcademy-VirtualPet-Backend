@@ -31,6 +31,7 @@ public class UserController {
                     return userService.addPetToUser(userId, authenticatedUsername, pet)
                             .map(updatedUser -> {
                                 System.out.println("User updated successfully: " + updatedUser.getUsername());
+                                System.out.println("Updated User: " + updatedUser.toString());
                                 return ResponseEntity.ok(updatedUser);
                             });
                 });

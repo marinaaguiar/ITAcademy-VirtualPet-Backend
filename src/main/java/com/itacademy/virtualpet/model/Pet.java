@@ -87,4 +87,17 @@ public class Pet {
     public void setNeeds(List<PetNeeds> needs) {
         this.needs = needs;
     }
+
+    @Override
+    public String toString() {
+        return "Pet{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", uniqueCharacteristic='" + uniqueCharacteristic + '\'' +
+                ", energyLevel=" + energyLevel +
+                ", type=" + type +
+                ", mood=" + mood +
+                ", needs=" + needs +
+                '}';
+    }
 }
