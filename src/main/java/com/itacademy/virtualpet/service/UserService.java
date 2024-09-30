@@ -23,7 +23,7 @@ public class UserService {
     @Autowired
     private PetRepository petRepository;
 
-    public Mono<User> addPetToUser(String userId, Pet newPet, String authenticatedUsername) {
+    public Mono<List<Pet>> addPetToUser(String userId, Pet newPet, String authenticatedUsername) {
         return userRepository.findById(userId)
                 .switchIfEmpty(Mono.error(new UserNotFoundException("User with ID '" + userId + "' not found.")))
                 .flatMap(user -> {
@@ -31,6 +31,7 @@ public class UserService {
                         return Mono.error(new AccessDeniedException("You are not authorized to modify this user"));
                     }
 
+                    // Save the new pet and update the user's list of pet IDs
                     newPet.setUserId(userId);
                     return petRepository.save(newPet)
                             .flatMap(savedPet -> {
@@ -38,10 +39,15 @@ public class UserService {
                                     user.setPetIds(new ArrayList<>());
                                 }
                                 user.getPetIds().add(savedPet.getId());
-                                return userRepository.save(user);
+
+                                // Save the updated user and then retrieve the updated list of pets
+                                return userRepository.save(user)
+                                        .flatMap(savedUser -> petRepository.findAllById(savedUser.getPetIds())
+                                                .collectList());  // Return the updated list of pets
                             });
                 });
     }
+
 
     public Mono<List<Pet>> getUserPets(String userId, String authenticatedUsername) {
         return userRepository.findById(userId)

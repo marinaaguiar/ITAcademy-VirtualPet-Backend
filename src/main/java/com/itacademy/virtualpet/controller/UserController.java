@@ -24,7 +24,7 @@ public class UserController {
     private PetService petService;
 
     @PostMapping("/{userId}/addPet")
-    public Mono<ResponseEntity<User>> addPetToUser(
+    public Mono<ResponseEntity<List<Pet>>> addPetToUser(
             @PathVariable String userId,
             @RequestBody Pet pet,
             Authentication authentication) {
@@ -34,8 +34,10 @@ public class UserController {
         }
 
         String authenticatedUsername = authentication.getName();
+
+        // Add the pet and return the updated list of pets
         return userService.addPetToUser(userId, pet, authenticatedUsername)
-                .map(updatedUser -> ResponseEntity.ok(updatedUser))
+                .flatMap(updatedPets -> Mono.just(ResponseEntity.ok(updatedPets))) // Wrap the ResponseEntity in Mono.just()
                 .defaultIfEmpty(ResponseEntity.notFound().build())
                 .onErrorResume(e -> {
                     System.out.println("Error: " + e.getMessage());
