@@ -12,6 +12,7 @@ public class Pet {
 
     @Id
     private String id = UUID.randomUUID().toString();
+    private String userId;
     private String name;
     private String uniqueCharacteristic;
     private int energyLevel;
@@ -80,8 +81,16 @@ public class Pet {
         this.mood = mood;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public List<PetNeeds> getNeeds() {
         return needs;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public void setNeeds(List<PetNeeds> needs) {

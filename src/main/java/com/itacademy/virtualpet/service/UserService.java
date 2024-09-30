@@ -3,6 +3,7 @@ package com.itacademy.virtualpet.service;
 import com.itacademy.virtualpet.model.Pet;
 import com.itacademy.virtualpet.model.User;
 import com.itacademy.virtualpet.exception.UserNotFoundException;
+import com.itacademy.virtualpet.repository.PetRepository;
 import com.itacademy.virtualpet.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,24 +11,19 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private PetRepository petRepository;
 
-    public Mono<User> findUserById(String userId) {
-        return userRepository.findById(userId);
-    }
-
-    public Mono<User> addPetToUser(String userId, String authenticatedUsername, Pet newPet) {
+    public Mono<User> addPetToUser(String userId, Pet newPet, String authenticatedUsername) {
         return userRepository.findById(userId)
                 .switchIfEmpty(Mono.error(new UserNotFoundException("User with ID '" + userId + "' not found.")))
                 .flatMap(user -> {
@@ -35,14 +31,15 @@ public class UserService {
                         return Mono.error(new AccessDeniedException("You are not authorized to modify this user"));
                     }
 
-                    if (user.getPets() == null) {
-                        user.setPets(new ArrayList<>());
-                    }
-
-                    System.out.println("Adding pet: " + newPet.getName());
-                    user.getPets().add(newPet);
-                    Mono<User> saveNewUser = userRepository.save(user);
-                    return saveNewUser;
+                    newPet.setUserId(userId);
+                    return petRepository.save(newPet)
+                            .flatMap(savedPet -> {
+                                if (user.getPetIds() == null) {
+                                    user.setPetIds(new ArrayList<>());
+                                }
+                                user.getPetIds().add(savedPet.getId());
+                                return userRepository.save(user);
+                            });
                 });
     }
 
@@ -51,16 +48,15 @@ public class UserService {
                 .switchIfEmpty(Mono.error(new UserNotFoundException("User with ID '" + userId + "' not found.")))
                 .flatMap(user -> {
                     if (!user.getUsername().equals(authenticatedUsername)) {
-                        System.out.println("Access denied for user: " + authenticatedUsername);
                         return Mono.error(new AccessDeniedException("You are not authorized to view this user's pets"));
                     }
 
-                    if (user.getPets() == null || user.getPets().isEmpty()) {
-                        System.out.println("User has no pets, returning empty list.");
+                    if (user.getPetIds() == null || user.getPetIds().isEmpty()) {
                         return Mono.just(Collections.emptyList());
                     }
-                    System.out.println("User's pets: " + user.getPets().size());
-                    return Mono.just(user.getPets());
+
+                    return petRepository.findAllById(user.getPetIds())
+                            .collectList();
                 });
     }
 }

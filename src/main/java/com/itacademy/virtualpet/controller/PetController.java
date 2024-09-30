@@ -1,9 +1,7 @@
 package com.itacademy.virtualpet.controller;
 
 import com.itacademy.virtualpet.model.Pet;
-import com.itacademy.virtualpet.model.User;
 import com.itacademy.virtualpet.service.PetService;
-import com.itacademy.virtualpet.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,31 +9,27 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/users")
-public class UserController {
-
-    @Autowired
-    private UserService userService;
+@RequestMapping("/api/pets")
+public class PetController {
 
     @Autowired
     private PetService petService;
 
-    @PostMapping("/{userId}/addPet")
-    public Mono<ResponseEntity<User>> addPetToUser(
-            @PathVariable String userId,
-            @RequestBody Pet pet,
+    @PutMapping("/{petId}")
+    public Mono<ResponseEntity<Pet>> updatePetState(
+            @PathVariable String petId,
+            @RequestBody Pet updatedPet,
             Authentication authentication) {
 
         if (authentication == null) {
+            System.out.println("Authentication is null, returning UNAUTHORIZED.");
             return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
         }
 
         String authenticatedUsername = authentication.getName();
-        return userService.addPetToUser(userId, pet, authenticatedUsername)
-                .map(updatedUser -> ResponseEntity.ok(updatedUser))
+        return petService.updatePetState(petId, updatedPet, authenticatedUsername)
+                .map(updatedPetState -> ResponseEntity.ok(updatedPetState))
                 .defaultIfEmpty(ResponseEntity.notFound().build())
                 .onErrorResume(e -> {
                     System.out.println("Error: " + e.getMessage());
@@ -43,9 +37,9 @@ public class UserController {
                 });
     }
 
-    @GetMapping("/{userId}/pets")
-    public Mono<ResponseEntity<List<Pet>>> getUserPets(
-            @PathVariable String userId,
+    @GetMapping("/{petId}")
+    public Mono<ResponseEntity<Pet>> getPetById(
+            @PathVariable String petId,
             Authentication authentication) {
 
         if (authentication == null) {
@@ -53,13 +47,8 @@ public class UserController {
         }
 
         String authenticatedUsername = authentication.getName();
-
-        return userService.getUserPets(userId, authenticatedUsername)
-                .map(pets -> ResponseEntity.ok(pets))
-                .defaultIfEmpty(ResponseEntity.notFound().build())
-                .onErrorResume(e -> {
-                    System.out.println("Error: " + e.getMessage());
-                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
-                });
+        return petService.getPetById(petId, authenticatedUsername)
+                .map(pet -> ResponseEntity.ok(pet))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }

@@ -14,13 +14,13 @@ public class User {
     private String username;
     private String password;
     @Field("pets")
-    private List<Pet> pets;
+    private List<String> petIds;
 
 
-    public User(String username, String password, List<Pet> pets) {
+    public User(String username, String password, List<String> petIds) {
         this.username = username;
         this.password = password;
-        this.pets = pets;
+        this.petIds = petIds;
     }
 
     public String getId() {
@@ -43,16 +43,16 @@ public class User {
         return password;
     }
 
+    public List<String> getPetIds() {
+        return petIds;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
 
-    public List<Pet> getPets() {
-        return pets;
-    }
-
-    public void setPets(List<Pet> pets) {
-        this.pets = pets;
+    public void setPetIds(List<String> petIds) {
+        this.petIds = petIds;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class User {
                 "id='" + id + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
-                ", pets=" + pets +
+                ", petIds=" + petIds +
                 '}';
     }
 }
