@@ -65,21 +65,17 @@ public class JwtUtil {
             "qOv7kjjiXmwdi4u/2WzUjSa/6srenbdH+xOr9mj5+Vsf9UtSZsBsFVAY1v8I3CF+" +
             "3543pkMSv0PHYsu0Xs+drB41q3SSXQ==";
 
-    public String generateToken(User user) {
+    public String createToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, user.getUsername());
-    }
+        claims.put("roles", user.isAdmin() ? "ADMIN" : "USER");
 
-    private String createToken(Map<String, Object> claims, String subject) {
-        String token = Jwts.builder()
+        return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 100)) // Token valid for 100 hours
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .setSubject(user.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 100))  // Token valid for 100 hours
+                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
-        System.out.println("TOKEN: " + token);
-        return token;
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

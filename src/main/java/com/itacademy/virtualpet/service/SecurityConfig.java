@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeExchange()
                 .pathMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .pathMatchers("/api/admin/**").hasRole("ADMIN")
                 .pathMatchers("/api/users/**").authenticated()
                 .anyExchange().authenticated()
                 .and()
@@ -51,9 +52,12 @@ public class SecurityConfig {
     @Bean
     public ReactiveUserDetailsService userDetailsService(UserRepository userRepository) {
         return username -> userRepository.findByUsername(username)
-                .map(user -> User.withUsername(user.getUsername())
-                        .password(user.getPassword())
-                        .roles("USER")
-                        .build());
+                .map(user -> {
+                    String[] roles = user.isAdmin() ? new String[]{"ADMIN", "USER"} : new String[]{"USER"};
+                    return User.withUsername(user.getUsername())
+                            .password(user.getPassword())
+                            .roles(roles)
+                            .build();
+                });
     }
 }

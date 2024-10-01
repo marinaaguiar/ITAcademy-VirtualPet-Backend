@@ -15,45 +15,35 @@ public class User {
     private String password;
     @Field("pets")
     private List<String> petIds;
+    @Field("isAdmin")
+    private boolean isAdmin;
 
-
-    public User(String username, String password, List<String> petIds) {
+    public User(String username, String password, List<String> petIds, boolean isAdmin) {
         this.username = username;
         this.password = password;
         this.petIds = petIds;
+        this.isAdmin = isAdmin;
     }
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public void setId(String id) { this.id = id; }
 
-    public String getUsername() {
-        return username;
-    }
+    public void setAdmin(boolean isAdmin) { this.isAdmin = isAdmin; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getUsername() { return username; }
 
-    public String getPassword() {
-        return password;
-    }
+    public void setUsername(String username) { this.username = username; }
 
-    public List<String> getPetIds() {
-        return petIds;
-    }
+    public String getPassword() { return password; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public List<String> getPetIds() { return petIds; }
 
-    public void setPetIds(List<String> petIds) {
-        this.petIds = petIds;
-    }
+    public boolean isAdmin() { return isAdmin; }
+
+    public void setPassword(String password) { this.password = password; }
+
+    public void setPetIds(List<String> petIds) { this.petIds = petIds; }
 
     @Override
     public String toString() {
@@ -61,7 +51,8 @@ public class User {
                 "id='" + id + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
-                ", petIds=" + petIds +
+                ", petIds='" + petIds + '\'' +
+                ", isAdmin=" + isAdmin +
                 '}';
     }
 }

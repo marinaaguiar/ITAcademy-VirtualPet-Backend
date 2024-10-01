@@ -1,7 +1,6 @@
 package com.itacademy.virtualpet.service;
 
 import com.itacademy.virtualpet.model.Pet;
-import com.itacademy.virtualpet.model.User;
 import com.itacademy.virtualpet.exception.UserNotFoundException;
 import com.itacademy.virtualpet.repository.PetRepository;
 import com.itacademy.virtualpet.repository.UserRepository;
@@ -31,7 +30,6 @@ public class UserService {
                         return Mono.error(new AccessDeniedException("You are not authorized to modify this user"));
                     }
 
-                    // Save the new pet and update the user's list of pet IDs
                     newPet.setUserId(userId);
                     return petRepository.save(newPet)
                             .flatMap(savedPet -> {
@@ -40,10 +38,9 @@ public class UserService {
                                 }
                                 user.getPetIds().add(savedPet.getId());
 
-                                // Save the updated user and then retrieve the updated list of pets
                                 return userRepository.save(user)
                                         .flatMap(savedUser -> petRepository.findAllById(savedUser.getPetIds())
-                                                .collectList());  // Return the updated list of pets
+                                                .collectList());
                             });
                 });
     }
@@ -51,6 +48,7 @@ public class UserService {
 
     public Mono<List<Pet>> getUserPets(String userId, String authenticatedUsername) {
         return userRepository.findById(userId)
+                .doOnNext(user -> System.out.println("Found user: " + user))
                 .switchIfEmpty(Mono.error(new UserNotFoundException("User with ID '" + userId + "' not found.")))
                 .flatMap(user -> {
                     if (!user.getUsername().equals(authenticatedUsername)) {
@@ -62,7 +60,14 @@ public class UserService {
                     }
 
                     return petRepository.findAllById(user.getPetIds())
+                            .doOnNext(pet -> System.out.println("Found pet: " + pet))
                             .collectList();
                 });
+    }
+
+    public Mono<List<Pet>> getAllPets() {
+        return petRepository.findAll()
+                .doOnNext(pet -> System.out.println("Admin fetched pet: " + pet))
+                .collectList();
     }
 }

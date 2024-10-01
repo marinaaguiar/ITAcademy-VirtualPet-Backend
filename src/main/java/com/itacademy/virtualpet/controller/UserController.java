@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -35,9 +36,8 @@ public class UserController {
 
         String authenticatedUsername = authentication.getName();
 
-        // Add the pet and return the updated list of pets
         return userService.addPetToUser(userId, pet, authenticatedUsername)
-                .flatMap(updatedPets -> Mono.just(ResponseEntity.ok(updatedPets))) // Wrap the ResponseEntity in Mono.just()
+                .flatMap(updatedPets -> Mono.just(ResponseEntity.ok(updatedPets)))
                 .defaultIfEmpty(ResponseEntity.notFound().build())
                 .onErrorResume(e -> {
                     System.out.println("Error: " + e.getMessage());
@@ -55,13 +55,28 @@ public class UserController {
         }
 
         String authenticatedUsername = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+        System.out.println("Is admin: " + isAdmin);
 
-        return userService.getUserPets(userId, authenticatedUsername)
-                .map(pets -> ResponseEntity.ok(pets))
-                .defaultIfEmpty(ResponseEntity.notFound().build())
-                .onErrorResume(e -> {
-                    System.out.println("Error: " + e.getMessage());
-                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
-                });
+        if (isAdmin) {
+            // If the user is an admin, return all pets
+            return userService.getAllPets()
+                    .doOnNext(pets -> System.out.println("Fetched pets: " + pets))
+                    .map(pets -> ResponseEntity.ok(pets))
+                    .onErrorResume(e -> {
+                        System.out.println("Error fetching all pets: " + e.getMessage());
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                    });
+        } else {
+            // If the user is not an admin, return only their own pets
+            return userService.getUserPets(userId, authenticatedUsername)
+                    .map(pets -> ResponseEntity.ok(pets))
+                    .defaultIfEmpty(ResponseEntity.notFound().build())
+                    .onErrorResume(e -> {
+                        System.out.println("Error fetching user pets: " + e.getMessage());
+                        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                    });
+        }
     }
 }

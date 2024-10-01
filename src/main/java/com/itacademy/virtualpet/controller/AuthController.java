@@ -25,7 +25,7 @@ public class AuthController {
     public Mono<ResponseEntity<Map<String, Object>>> register(@RequestBody User user) {
         return authService.register(user.getUsername(), user.getPassword())
                 .map(savedUser -> {
-                    String token = jwtUtil.generateToken((User) savedUser);
+                    String token = jwtUtil.createToken((User) savedUser);
                     Map<String, Object> response = new HashMap<>();
                     response.put("user", savedUser);
                     response.put("token", token);
@@ -36,11 +36,14 @@ public class AuthController {
     @PostMapping("/login")
     public Mono<ResponseEntity<Map<String, Object>>> login(@RequestBody User user) {
         return authService.login(user.getUsername(), user.getPassword())
-                .map(loggedInUser -> {
-                    String token = jwtUtil.generateToken((User) loggedInUser);
+                .map(loginResponse -> {
+                    User loggedInUser = loginResponse.getUser();
+                    String token = loginResponse.getToken();
+
                     Map<String, Object> response = new HashMap<>();
                     response.put("user", loggedInUser);
                     response.put("token", token);
+
                     return ResponseEntity.ok(response);
                 });
     }
