@@ -1,7 +1,6 @@
 package com.itacademy.virtualpet.controller;
 
 import com.itacademy.virtualpet.model.Pet;
-import com.itacademy.virtualpet.model.User;
 import com.itacademy.virtualpet.service.PetService;
 import com.itacademy.virtualpet.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController

@@ -51,4 +51,22 @@ public class PetController {
                 .map(pet -> ResponseEntity.ok(pet))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
+
+    @DeleteMapping("/{petId}")
+    public Mono<ResponseEntity<Object>> deletePet(@PathVariable String petId, Authentication authentication) {
+        if (authentication == null) {
+            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+        }
+
+        String authenticatedUsername = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+        return petService.deletePet(petId, authenticatedUsername, isAdmin)
+                .then(Mono.just(ResponseEntity.noContent().build()))
+                .onErrorResume(e -> {
+                    System.out.println("Error: " + e.getMessage());
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
+    }
 }

@@ -9,8 +9,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-
 @Service
 public class PetService {
 
@@ -45,5 +43,32 @@ public class PetService {
                             }
                             return Mono.just(pet);
                         }));
+    }
+
+    public Mono<Void> deletePet(String petId, String authenticatedUsername, boolean isAdmin) {
+        return petRepository.findById(petId)
+                .switchIfEmpty(Mono.error(new PetNotFoundException("Pet with ID '" + petId + "' not found.")))
+                .flatMap(pet -> {
+                    // Allow admins to delete without authentication checks
+                    if (isAdmin) {
+                        return userRepository.findById(pet.getUserId())
+                                .flatMap(user -> {
+                                    user.getPetIds().remove(petId);
+                                    return userRepository.save(user)
+                                            .then(petRepository.deleteById(petId));
+                                });
+                    } else {
+                        // Non-admin users must authenticate
+                        return userRepository.findById(pet.getUserId())
+                                .flatMap(user -> {
+                                    if (!user.getUsername().equals(authenticatedUsername)) {
+                                        return Mono.error(new AccessDeniedException("You are not authorized to delete this pet."));
+                                    }
+                                    user.getPetIds().remove(petId);
+                                    return userRepository.save(user)
+                                            .then(petRepository.deleteById(petId));
+                                });
+                    }
+                });
     }
 }
